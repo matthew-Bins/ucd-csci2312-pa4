@@ -278,21 +278,21 @@ namespace Gaming {
 		if (from.x == to.x && from.y == from.x)
 			return STAY;
 		
-		if (to.x == 0 && to.y == 0)
+		if (to.x == from.x - 1 && to.y == from.y - 1)
 			return NW;
-		else if (to.x == 1 && to.y == 0)
+		else if (to.x == from.x && to.y == from.y == to.y - 1)
 			return N;
-		else if (to.x == 2 && to.y == 0)
+		else if (to.x == from.y + 1 && to.y == from.y - 1)
 			return NE;
-		else if (to.x == 0 && to.y == 1)
+		else if (to.x == from.x - 1 && to.y == from.y)
 			return W;
-		else if (to.x == 2 && to.y == 1)
+		else if (to.x == from.x + 1 && to.y == from.y)
 			return E;
-		else if (to.x == 0 && to.y == 2)
+		else if (to.x == from.x - 1 && to.y == from.y + 1)
 			return SW;
-		else if (to.x == 1 && to.y == 2)
+		else if (to.x == from.x && to.y == from.y + 1)
 			return S;
-		else if (to.x == 2 && to.y == 2)
+		else if (to.x == from.x + 1 && to.y == from.y + 1)
 			return SE;
 	}
 

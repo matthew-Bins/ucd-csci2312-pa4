@@ -6,7 +6,7 @@ namespace Gaming {
 	const double Advantage::ADVANTAGE_MULT_FACTOR = 2.0;
 
 	Advantage::Advantage(const Game& g, const Position& p, double capacity) : 
-		Resource(g, p, capacity) {}
+		Resource(g, p, capacity * ADVANTAGE_MULT_FACTOR) {}
 
 	Advantage::~Advantage() {}
 
@@ -19,7 +19,7 @@ namespace Gaming {
 	double Advantage::getCapacity() const { return Advantage::__capacity; }
 
 	double Advantage::consume() {
-		return __capacity * ADVANTAGE_MULT_FACTOR;
+		return __capacity;
 	}
 
 }

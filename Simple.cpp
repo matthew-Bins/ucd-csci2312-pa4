@@ -30,6 +30,7 @@ namespace Gaming {
 		if (ways.size() != 0)//checks if there's any resources near
 			p = random(ways);
 		else {
+			ways.clear();
 			for (int i = 0; i < 8; ++i)
 				if (s.array[i] == EMPTY)
 					ways.push_back(i);

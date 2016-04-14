@@ -20,7 +20,6 @@ namespace Gaming {
 
 	void Resource::age() {
 		__capacity /= RESOURCE_SPOIL_FACTOR;
-
 	}
 
 	ActionType Resource::takeTurn(const Surroundings& s) const {

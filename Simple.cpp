@@ -23,17 +23,19 @@ namespace Gaming {
 		PositionRandomizer random;
 		Position p;
 
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < 8; ++i) {
 			if (s.array[i] == FOOD || s.array[i] == ADVANTAGE)
 				ways.push_back(i);
+		}
 
 		if (ways.size() != 0)//checks if there's any resources near
 			p = random(ways);
 		else {
 			ways.clear();
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i) {
 				if (s.array[i] == EMPTY)
 					ways.push_back(i);
+			}
 			if (ways.size() != 0)//checks if there's any empty spaces near
 				p = random(ways);
 			else {//sets p to center because it's not moving

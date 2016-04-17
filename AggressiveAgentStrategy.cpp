@@ -24,41 +24,45 @@ namespace Gaming {
 				__agentEnergy >= DEFAULT_AGGRESSION_THRESHOLD)//checks for agents 
 				pieces[0] = true;
 			else if (s.array[i] == ADVANTAGE)//checks for advantage
-				pieces[0] = true;
+				pieces[1] = true;
 			else if (s.array[i] == FOOD)//checks for food
-				pieces[0] = true;
+				pieces[2] = true;
 			else if (s.array[i] == EMPTY)//checks for empty
-				pieces[0] = true;
+				pieces[3] = true;
 		}
 
 		if (pieces[0]) {//moves towards agent if true
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i) {
 				if (s.array[i] == SIMPLE || s.array[i] == STRATEGIC)
 					ways.push_back(i);
+			}
 
 			p = random(ways);
 			return Game::reachSurroundings(middle, p);
 		}
 		else if (pieces[1]) {//moves to advantage if true
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i) {
 				if (s.array[i] == ADVANTAGE)
 					ways.push_back(i);
+			}
 
 			p = random(ways);
 			return Game::reachSurroundings(middle, p);
 		}
 		else if (pieces[2]) { //moves to food if true
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i) {
 				if (s.array[i] == FOOD)
 					ways.push_back(i);
+			}
 
 			p = random(ways);
 			return Game::reachSurroundings(middle, p);
 		}
 		else if (pieces[3]) {//moves to empty space if true
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < 8; ++i) {
 				if (s.array[i] == EMPTY)
 					ways.push_back(i);
+			}
 
 			p = random(ways);
 			return Game::reachSurroundings(middle, p);

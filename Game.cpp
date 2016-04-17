@@ -4,6 +4,8 @@
 #include "Strategic.h"
 #include "Food.h"
 #include "Advantage.h"
+#include "Piece.h"
+#include<set>
 #include<iomanip>
 
 namespace Gaming {
@@ -69,6 +71,7 @@ namespace Gaming {
 	Game::Game() {
 		__width = MIN_WIDTH;
 		__height = MIN_HEIGHT;
+		__status = NOT_STARTED;
 
 		int size = __width * __height;
 		for (int i = 0; i < size; ++i)
@@ -79,6 +82,7 @@ namespace Gaming {
 	Game::Game(unsigned width, unsigned height, bool manual) {
 		__width = width;
 		__height = height;
+		__status = NOT_STARTED;
 
 		int size = __width * __height;
 		for (int i = 0; i < size; ++i)
@@ -153,7 +157,7 @@ namespace Gaming {
 	}
 
 	const Piece* Game::getPiece(unsigned int x, unsigned int y) const {
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 
 		return __grid[place];
 	}
@@ -164,7 +168,7 @@ namespace Gaming {
 			(position.y < 0 && position.y > getHeight()))
 			throw OutOfBoundsEx(getWidth(), getHeight(), position.x, position.y);
 
-		int place = position.x + (position.y * __width);
+		int place = position.y + (position.x * __width);
 		__grid[place] = new Simple(*this, position, STARTING_AGENT_ENERGY);
 
 	}
@@ -174,7 +178,7 @@ namespace Gaming {
 			(position.y < 0 && position.y > getHeight()))
 			throw OutOfBoundsEx(getWidth(), getHeight(), position.x, position.y);
 
-		int place = position.x + (position.y * __width);
+		int place = position.y + (position.x * __width);
 		__grid[place] = new Simple(*this, position, energy);
 	}
 
@@ -184,7 +188,7 @@ namespace Gaming {
 
 		Position p(x, y);
 
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 		__grid[place] = new Simple(*this, p, STARTING_AGENT_ENERGY);
 	}
 
@@ -194,12 +198,12 @@ namespace Gaming {
 
 		Position p(x, y);
 
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 		__grid[place] = new Simple(*this, p, energy);
 	}
 
 	void Game::addStrategic(const Position& position, Strategy* s) {
-		int place = position.x + (position.y * __width);
+		int place = position.y + (position.x * __width);
 
 		__grid[place] = new Strategic(*this, position, STARTING_AGENT_ENERGY, s);
 	}
@@ -207,12 +211,12 @@ namespace Gaming {
 	void Game::addStrategic(unsigned x, unsigned y, Strategy* s) {
 		Position p(x, y);
 
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 		__grid[place] = new Strategic(*this, p, STARTING_AGENT_ENERGY, s);
 	}
 
 	void Game::addFood(const Position& position) {
-		int place = position.x + (position.y * __width);
+		int place = position.y + (position.x * __width);
 
 		__grid[place] = new Food(*this, position, STARTING_RESOURCE_CAPACITY);
 	}
@@ -220,12 +224,12 @@ namespace Gaming {
 	void Game::addFood(unsigned x, unsigned y) {
 		Position p(x, y);
 
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 		__grid[place] = new Food(*this, p, STARTING_RESOURCE_CAPACITY);
 	}
 
 	void Game::addAdvantage(const Position& position) {
-		int place = position.x + (position.y * __width);
+		int place = position.y + (position.x * __width);
 
 		__grid[place] = new Advantage(*this, position, STARTING_RESOURCE_CAPACITY);
 	}
@@ -233,7 +237,7 @@ namespace Gaming {
 	void Game::addAdvantage(unsigned x, unsigned y) {
 		Position p(x, y);
 
-		int place = x + (y * __width);
+		int place = y + (x * __width);
 		__grid[place] = new Advantage(*this, p, STARTING_RESOURCE_CAPACITY);
 	}
 
@@ -247,28 +251,29 @@ namespace Gaming {
 				s.array[i] = EMPTY;
 		}
 
-		Position find;
+		int x = pos.x - 1, y = pos.y - 1;
 		PieceType type;
-		find.x = pos.x - 1;
-		find.y = pos.y - 1;
+		int total = 0;
 
 		for (int row = 0; row < 3; ++row) {
 			for (int col = 0; col < 3; ++col) {
 				//the point is out of the grid
-				if ((find.x < 0 || find.x > __width) || (find.y < 0 || find.y > __height)) {
-					s.array[col + (row * __width)] = INACCESSIBLE;
+				if ((x < 0 || x > __width - 1) || (y < 0 || y > __height - 1)) {
+					s.array[row + (col * __width)] = INACCESSIBLE;
 				}
 				else {
-					if (__grid[col + (row * __width)] != nullptr) {// checks if position has something
-						type = __grid[col + (row * __width)]->getType();
-						s.array[col + (row * __width)] = type;
+					if (__grid[col + (row * 3)] != nullptr) {// checks if position has something
+						type = __grid[row + (col * 3)]->getType();
+						s.array[row + (col * 3)] = type;
 					}
 					else
-						s.array[col + (row * __width)] = EMPTY;
+						s.array[col + (row * 3)] = EMPTY;
 				}
+				x++;
+				++total;
 			}
-			find.x = pos.x - 1;//resets x
-			find.y += 1; //goes to tnext row
+			x = pos.x - 1;//resets x
+			y++; //goes to tnext row
 		}
 
 		return s;
@@ -335,26 +340,137 @@ namespace Gaming {
 
 	const Position Game::move(const Position& pos, const ActionType& ac) const {
 
-		do {
+		Position p(pos.x, pos.y);
+
+		if (isLegal(ac, pos)) {
+
+			switch (ac) {
+			case N:
+				p.y--;
+				break;
+			case NE:
+				p.y--;
+				p.x++;
+				break;
+			case NW:
+				p.y--;
+				p.x--;
+				break;
+			case W:
+				p.x--;
+				break;
+			case E:
+				p.x++;
+				break;
+			case S:
+				p.y++;
+				break;
+			case SE:
+				p.y++;
+				p.x++;
+				break;
+			case SW:
+				p.y++;
+				p.x--;
+				break;
+			case STAY:
+				//nothing because we are staying
+				break;
+				
+			}
+
+		}
 
 
-		} while (!isLegal(ac, pos));
-
-		return pos;
+		return p;
 	}
 
-	void Game::round() {////////////////////
+	void Game::round() {
+		std::set<Piece*> board;
+		Position pos, New;
+		ActionType move;
+		Piece* pptr;
+		int place;
+
+		for (auto it = __grid.begin(); it < __grid.end(); ++it) {
+			if (*it != nullptr) {
+				board.insert(*it);
+				(*it)->setTurned(false);//resets the pieces of not doing turn yet
+			}
+		}
+
+		for (auto it = board.begin(); it != board.end(); ++it) {
+
+			if ((*it)->isViable()) {
+				(*it)->age();
+				(*it)->setTurned(true);
+				
+				pos = (*it)->getPosition();//puts pieces position in a variable
+				move = (*it)->takeTurn(getSurroundings(pos)); //takes the pieces turn
+
+				New = this->move(pos, move);//get's the new position of the piece
+				place = New.x + (New.y * __width);
+
+				pptr = __grid[place];
+
+				if (pptr != nullptr) {//there is a piece at position it wants to move
+
+					(*(*it) * *pptr);//the pieces interact
+
+					if ((*it)->isViable()) {//didn't get consumed
+						(*it)->setPosition(New);
+
+						//change the board
+						__grid[New.x + (New.y * __width)] = *it;
+						__grid[pos.x + (pos.y * __width)] = nullptr;
+					}
+					else {//piece got consumed
+						__grid[pos.x + (pos.y * __width)] = nullptr;
+					}
+				}
+				else {//space is empty
+					__grid[New.x + (New.y * __width)] = *it;
+				}
+			}
+		}//end of the loop
+
+		for (int i = 0; i < __grid.size(); ++i) {
+			if (!__grid[i]->isViable() && __grid[i] != nullptr) {
+				delete __grid[i];
+				__grid[i] = nullptr;
+			}
+		}
+
+		if (getNumResources() == 0)
+			this->__status = OVER;
 
 	}
 
-	void Game::play(bool verbose) {//////////////////
+	void Game::play(bool verbose) {
+		__status = PLAYING;
+		//verbose means to show what's going on
+		__verbose = verbose;
 
+		//print starting corridants of pieces
+		if(__verbose)
+			std::cout << this;
+
+		while (__status != OVER) {//start the game!!!
+			round();
+
+			if (__verbose)//if true shows the host what is going on in the game
+				std::cout << this;
+		}
+
+		//print final corrdinants of piecs
+		if (__verbose)
+			std::cout << this;
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Game& game) {
 		int x = game.__width, y = game.__height;
 		
-		
+		os << "Round: " << game.__round << std::endl;
 		for (int i = 0; i < y; ++i) {
 			for (int j = 0; j < x; ++j) {
 				if (game.__grid[j + (i * (game.__width - 1))] == nullptr)

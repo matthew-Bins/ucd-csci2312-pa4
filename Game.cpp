@@ -28,7 +28,7 @@ namespace Gaming {
 		unsigned int numFoods = __numInitResources - numAdvantages;
 		//random number generator
 		std::default_random_engine gen;
-		std::uniform_int_distribution<int> d(0, __width * __height);
+		std::uniform_int_distribution<int> d(0, __width * __height -1);
 
 		while (numStrategic > 0) {
 			int i = d(gen); // random index in the grid vector
@@ -342,17 +342,17 @@ namespace Gaming {
 		
 		if (to.x == from.x - 1 && to.y == from.y - 1)
 			return NW;
-		else if (to.x == from.x && to.y == from.y == to.y - 1)
+		else if (to.x == from.x -1 && to.y == from.y)
 			return N;
-		else if (to.x == from.y + 1 && to.y == from.y - 1)
-			return NE;
-		else if (to.x == from.x - 1 && to.y == from.y)
-			return W;
-		else if (to.x == from.x + 1 && to.y == from.y)
-			return E;
 		else if (to.x == from.x - 1 && to.y == from.y + 1)
-			return SW;
+			return NE;
+		else if (to.x == from.x && to.y == from.y-1)
+			return W;
 		else if (to.x == from.x && to.y == from.y + 1)
+			return E;
+		else if (to.x == from.x + 1 && to.y == from.y - 1)
+			return SW;
+		else if (to.x == from.x + 1 && to.y == from.y)
 			return S;
 		else if (to.x == from.x + 1 && to.y == from.y + 1)
 			return SE;
@@ -407,32 +407,32 @@ namespace Gaming {
 
 			switch (ac) {
 			case N:
-				p.y--;
+				p.x--;
 				break;
 			case NE:
-				p.y--;
-				p.x++;
+				p.x--;
+				p.y++;
 				break;
 			case NW:
-				p.y--;
 				p.x--;
+				p.y--;
 				break;
 			case W:
-				p.x--;
+				p.y--;
 				break;
 			case E:
-				p.x++;
+				p.y++;
 				break;
 			case S:
-				p.y++;
-				break;
-			case SE:
-				p.y++;
 				p.x++;
 				break;
-			case SW:
+			case SE:
+				p.x++;
 				p.y++;
-				p.x--;
+				break;
+			case SW:
+				p.x++;
+				p.y--;
 				break;
 			case STAY:
 				//nothing because we are staying
@@ -455,14 +455,14 @@ namespace Gaming {
 
 		for (auto it = __grid.begin(); it < __grid.end(); ++it) {
 			if (*it != nullptr) {
-				board.insert(*it);
+				board.insert(board.end(), *it);
 				(*it)->setTurned(false);//resets the pieces of not doing turn yet
 			}
 		}
 
 		for (auto it = board.begin(); it != board.end(); ++it) {
 
-			if ((*it)->isViable()) {
+			if ((*it)->isViable() && (*it)->getTurned()) {
 				(*it)->age();
 				(*it)->setTurned(true);
 				
@@ -473,30 +473,31 @@ namespace Gaming {
 				place = New.y + (New.x * __width);
 
 				pptr = __grid[place];
+				if (pos.x != New.x && pos.y != New.y) {
+					if (pptr != nullptr) {//there is a piece at position it wants to move
 
-				if (pptr != nullptr) {//there is a piece at position it wants to move
+						(*(*it) * *pptr);//the pieces interact
 
-					(*(*it) * *pptr);//the pieces interact
+						if ((*it)->isViable()) {//didn't get consumed
+							(*it)->setPosition(New);
 
-					if ((*it)->isViable()) {//didn't get consumed
-						(*it)->setPosition(New);
-
-						//change the board
+							//change the board
+							__grid[New.y + (New.x * __width)] = *it;
+							__grid[pos.y + (pos.x * __width)] = nullptr;
+						}
+						else {//piece got consumed
+							__grid[pos.y + (pos.x * __width)] = nullptr;
+						}
+					}
+					else {//space is empty
 						__grid[New.y + (New.x * __width)] = *it;
-						__grid[pos.y + (pos.x * __width)] = nullptr;
 					}
-					else {//piece got consumed
-						__grid[pos.y + (pos.x * __width)] = nullptr;
-					}
-				}
-				else {//space is empty
-					__grid[New.y + (New.x * __width)] = *it;
 				}
 			}
 		}//end of the loop
 
 		for (int i = 0; i < __grid.size(); ++i) {
-			if (!__grid[i]->isViable() && __grid[i] != nullptr) {
+			if (__grid[i] != nullptr && !__grid[i]->isViable()) {
 				delete __grid[i];
 				__grid[i] = nullptr;
 			}
@@ -505,6 +506,7 @@ namespace Gaming {
 		if (getNumResources() == 0)
 			this->__status = OVER;
 
+		++__round;
 	}
 
 	void Game::play(bool verbose) {
@@ -520,7 +522,7 @@ namespace Gaming {
 			round();
 
 			if (__verbose)//if true shows the host what is going on in the game
-				std::cout << this;
+				std::cout << *this;
 		}
 
 		//print final corrdinants of piecs

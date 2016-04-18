@@ -1,5 +1,6 @@
 #include"DefaultAgentStrategy.h"
 #include<vector>
+#include<ctime>
 #include"Game.h"
 
 namespace Gaming {
@@ -15,8 +16,9 @@ namespace Gaming {
 	ActionType DefaultAgentStrategy::operator()(const Surroundings& s) const {
 		bool pieces[4] = { false, false, false, false };
 		std::vector<int> ways;
-		PositionRandomizer random;
+		std::default_random_engine gen(time(0));
 		Position p, middle(1,1);
+		int place;
 		
 		//this loop is to check if there's that piece to save some time 
 		//because if you are surrounded by simples you will have to go
@@ -40,8 +42,7 @@ namespace Gaming {
 					ways.push_back(i);
 			}
 
-			p = random(ways);
-			return Game::reachSurroundings(middle, p);
+			place = ways[gen() % ways.size()];
 		}
 		else if (pieces[1]) {
 			for (int i = 0; i < 8; ++i) {//no advantage check for food
@@ -49,8 +50,7 @@ namespace Gaming {
 					ways.push_back(i);
 			}
 
-			p = random(ways);
-			return Game::reachSurroundings(middle, p);
+			place = ways[gen() % ways.size()];
 		}
 		else if (pieces[2]) {
 			for (int i = 0; i < 8; ++i) {//no food check for empty
@@ -58,8 +58,7 @@ namespace Gaming {
 					ways.push_back(i);
 			}
 
-			p = random(ways);
-			return Game::reachSurroundings(middle, p);
+			place = ways[gen() % ways.size()];
 		}
 		else if (pieces[3]) {
 			for (int i = 0; i < 8; ++i) {//no empty check for simple
@@ -67,11 +66,50 @@ namespace Gaming {
 					ways.push_back(i);
 			}
 
-			p = random(ways);
-			return Game::reachSurroundings(middle, p);
+			place = ways[gen() % ways.size()];
+		}
+		else
+			return STAY;
+
+		switch (place) {
+		case 0:
+			p.x = middle.x - 1;
+			p.y = middle.y - 1;
+			break;
+		case 1:
+			p.x = middle.x - 1;
+			p.y = middle.y;
+			break;
+		case 2:
+			p.x = middle.x - 1;
+			p.y = middle.y + 1;
+			break;
+		case 3:
+			p.x = middle.x;
+			p.y = middle.y - 1;
+			break;
+		case 4:
+			p.x = middle.x;
+			p.y = middle.y;
+			break;
+		case 5:
+			p.x = middle.x;
+			p.y = middle.y + 1;
+			break;
+		case 6:
+			p.x = middle.x + 1;
+			p.y = middle.y - 1;
+			break;
+		case 7:
+			p.x = middle.x + 1;
+			p.y = middle.y;
+			break;
+		case 8:
+			p.x = middle.x + 1;
+			p.y = middle.y + 1;
+			break;
 		}
 
-		//array pieces is full of false so the piece stays put
-		return STAY;
+		return Game::reachSurroundings(middle, p);
 	}
 }
